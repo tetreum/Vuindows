@@ -23,7 +23,7 @@ const getters = {
             case 'video':
                 return 'images/filetypes/video.png';
             case 'folder':
-                return 'images/filetypes/folder.png';
+                return file.name.endsWith(":") ? 'images/filetypes/drive.png' : 'images/filetypes/folder.png';
             case 'exe':
                 return 'images/filetypes/executable.png';
             default:

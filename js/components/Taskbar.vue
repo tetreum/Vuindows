@@ -1,7 +1,7 @@
 <template>
     <div class="Taskbar">
         <div class="Taskbar__startButton" @click="$emit('toggleStartMenu')">
-            <img draggable="false" src="images/Vuindows-white.png" alt="">
+            <img draggable="false" src="images/logo.png" alt="">
 
         </div>
 

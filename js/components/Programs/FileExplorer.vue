@@ -66,6 +66,7 @@
                          :key="`${currentFolderName}-${file.name}`"
                          class="FileExplorer__content__file"
                          :class="{'FileExplorer__content__file--active': focusedFile === file.name}"
+                         @contextmenu="showLeftMenu(file)"
                          @dragstart="startDragging(file.name)"
                          @dragover="allowDrop"
                          @drop="moveFile"
@@ -116,7 +117,7 @@
             });
 
             Socket.request("ls", {
-                folder: 'C:\\'
+                folder: '/'
             }).then(files => {
                 this.currentFolder = {
                     name: "/",
@@ -196,13 +197,18 @@
             goBack() {
                 const directorySeparator = this.getDirectorySeparator();
                 const parts = this.currentFolder.name.split(directorySeparator);
-                parts.pop();
-                let previousPath = parts.join(directorySeparator);
-
-                // fix windows root letter, as C: != C:\\ to node.
-                if (parts.length == 1 && !(previousPath.includes(directorySeparator))) {
-                    previousPath += directorySeparator;
+                
+                // is trying to head back to root folder
+                // E:\\ -> ["E:", ""]
+                if (parts.length === 2 && 
+                    parts[0].endsWith(':') && 
+                    parts[1].length === 0) {
+                    parts[0] = '/';
                 }
+                
+                parts.pop();
+                
+                let previousPath = ((parts.length == 1 && parts[0] == "/") || parts.length === 0) ? "/" : parts.join(directorySeparator);
 
                 this.openFolder(previousPath);
             },
@@ -342,8 +348,24 @@
             },
             refresh () {
                 this.openFolder(this.currentFolder.name);
+            },
+            showLeftMenu (file) {
+                document.querySelector('.ContextMenu').dispatchEvent(new CustomEvent("show", {
+                    detail: {
+                        options: [
+                            {
+                                name: "Rename",
+                            },
+                            {
+                                name: "Delete",
+                            },
+                            {
+                                name: "Properties",
+                            }
+                        ]
+                    }
+                }));
             }
-            
         }
     }
 </script>

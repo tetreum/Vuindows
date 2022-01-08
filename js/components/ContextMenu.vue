@@ -1,8 +1,8 @@
 <template>
     <ul class="ContextMenu custom-menu" v-show="show">
-        <li id="1context" data-action="first">Change Background</li>
-        <li data-action="second">Second thing</li>
-        <li data-action="third">Third thing</li>
+        <li v-for="option in options" data-action="first">
+            {{ option.name }}
+        </li>
     </ul>
 </template>
 
@@ -10,7 +10,8 @@
     export default {
         data () {
             return {
-                show: false
+                show: false,
+                options: []
             }
         },
         mounted() {
@@ -19,16 +20,24 @@
                 // Avoid the real right click
                 event.preventDefault();
 
-                // Show contextmenu
-                this.show = !this.show;
                 $customMenu.style.top = event.pageY + "px";
                 $customMenu.style.left = event.pageX + "px";
             });
 
+            document.querySelector('.ContextMenu').addEventListener("show", (event) => {
+                if (event.detail.options.length === 0) {
+                    return;
+                }
+
+                this.options = event.detail.options;
+                this.show = true;
+            });
+
 
             // If the document is clicked somewhere else
-            document.body.addEventListener("mousedown", function (e) {
+            document.body.addEventListener("mousedown", (e) => {
                 if (!(e.target.contains($customMenu)) && !($customMenu.contains(e.target))) {
+                    this.options = [];
                     this.show = false;
                 }
             });

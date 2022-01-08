@@ -19,7 +19,13 @@ class Sockets {
                 if (typeof e.data === 'string') {
                     this.parseResponse(e.data);
                 }
-            };   
+            };
+
+            this.client.onclose = (e) => {
+                document.dispatchEvent(new CustomEvent("server-status", {
+                    detail: { status: 2 }
+                }));
+            };
         });
     }
 

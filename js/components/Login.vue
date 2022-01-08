@@ -6,7 +6,7 @@
             </div>
 
             <div class="text-center">
-                <form method="post">
+                <form v-show="serverStatus != 'red'" method="post">
                     <label>Username</label>
                     <input name="username" placeholder="Username" type="text" class="form-control" required>
                     
@@ -15,6 +15,7 @@
                     
                     <button class="btn btn-primary mt-2">Login</button>
                 </form>
+                <div class="Login__ServerStatus mt-3">Server status: <span :class="serverStatus"></span></div>
             </div>
         </div>
 
@@ -29,10 +30,28 @@
     export default {
         data () {
             return {
-                isNotLogged: true
+                isNotLogged: true,
+                serverStatus: "orange"
             };
         },
         mounted() {
+            document.addEventListener("server-status", (status) => {
+                switch (status.detail.status) {
+                    case 1: // connected
+                        this.serverStatus = "green";
+                        break;
+                    case 2: // disconnected
+                        this.serverStatus = "red";
+                        break;
+                    case 3: // rebooting
+                        this.serverStatus = "orange";
+                        break;
+                }
+            });
+            document.addEventListener("logout", () => {
+                this.isNotLogged = true;
+            });
+
             const user = localStorage.getItem("user");
 
             if (user !== null) {
@@ -80,6 +99,26 @@
     align-items: center;
     flex-direction: column;
     justify-content: center;
+
+    &__ServerStatus {
+        color: white;
+    }
+
+    &__ServerStatus span {
+        width: 11px;
+        height: 11px;
+        display: inline-block;
+        border-radius: 4px;
+    }
+    &__ServerStatus span.orange {
+        background: orange;
+    }
+    &__ServerStatus span.green {
+        background: green;
+    }
+    &__ServerStatus span.red {
+        background: red;
+    }
  }
  .form-control {
     display: block;
@@ -127,6 +166,9 @@
 }
 .mt-2 {
     margin-top: 0.5rem!important;
+}
+.mt-3 {
+    margin-top: 1rem!important;
 }
 .d-none {
     display: none;
