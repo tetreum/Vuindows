@@ -65,12 +65,12 @@
                          v-for="file in folderFiles"
                          :key="`${currentFolderName}-${file.name}`"
                          class="FileExplorer__content__file"
-                         :class="{'FileExplorer__content__file--active': focusedFile === file.name}"
+                         :class="{'FileExplorer__content__file--active': focusedFile && focusedFile.name === file.name}"
                          @contextmenu="showLeftMenu(file)"
                          @dragstart="startDragging(file.name)"
                          @dragover="allowDrop"
                          @drop="moveFile"
-                         @click="focusFile(file.name)"
+                         @click="focusFile(file)"
                          @dblclick="openFile(file)"
                          :data-name="`${file.name}`"
                          draggable="true">
@@ -79,7 +79,13 @@
                             <img v-else :src="`${getIcon(file)}`">
                         </div>
 
-                        <div class="FileExplorer__content__file__name">{{ file.name }}</div>
+                        <div :id="`file-name-${file.ino}`" 
+                            v-bind:contenteditable="focusedFile && focusedFile.name === file.name && renameFocusedFile" 
+                            @focusout="stopRenaming(file)" 
+                            @keydown="onKeyDown"
+                            class="FileExplorer__content__file__name">
+                            {{ file.name }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -102,6 +108,7 @@
                 breadcrumb: [],
                 focusedFile: null,
                 draggedFile: null,
+                renameFocusedFile: false,
                 directorySeparator: null
             }
         },
@@ -195,6 +202,7 @@
                 return this.directorySeparator;
             },
             goBack() {
+                this.renameFocusedFile = false;
                 const directorySeparator = this.getDirectorySeparator();
                 const parts = this.currentFolder.name.split(directorySeparator);
                 
@@ -300,6 +308,7 @@
                 return currentFolder;
             },
             openFolder(filePath) {
+                this.renameFocusedFile = false;
                 Socket.request("ls", {
                     folder: filePath
                 }).then(files => {
@@ -310,6 +319,7 @@
                 });
             },
             moveFile(e) {
+                this.renameFocusedFile = false;
                 const targetFolder = e.target.closest('[draggable="true"]').dataset.name;
                 let originFile = null;
                 let destinationFolder = null;
@@ -344,10 +354,50 @@
                 e.preventDefault();
             },
             startDragging(file) {
+                this.renameFocusedFile = false;
                 this.draggedFile = file;
             },
             refresh () {
                 this.openFolder(this.currentFolder.name);
+            },
+            rename (file) {
+                this.focusFile(file);
+                this.renameFocusedFile = true;
+
+                const $name = document.getElementById('file-name-' + file.ino);
+
+                $name.focus();
+                setTimeout(() => {
+                    $name.focus();
+                }, 200);
+            },
+            stopRenaming(file) {
+                if (!this.renameFocusedFile) {
+                    return;
+                }
+                this.renameFocusedFile = false;
+                const $name = document.getElementById('file-name-' + file.ino);
+                const newName = $name.innerText;
+
+                if (newName == file.name) { // no changes were made
+                    return;
+                }
+                
+                Socket.request("mv", {
+                    origin: file.path,
+                    destination: file.path.replace(file.name, newName)
+                }).then(result => {
+                    this.refresh();
+                });
+            },
+            onKeyDown (e) {
+                if (!e.target.contentEditable) {
+                    return;
+                }
+                if (e.code == "Enter") {
+                    e.preventDefault();
+                    this.stopRenaming(this.focusedFile);
+                }
             },
             showLeftMenu (file) {
                 document.querySelector('.ContextMenu').dispatchEvent(new CustomEvent("show", {
@@ -355,12 +405,21 @@
                         options: [
                             {
                                 name: "Rename",
+                                action: () => {
+                                    this.rename(file);
+                                }
                             },
                             {
                                 name: "Delete",
+                                action: () => {
+                                    
+                                }
                             },
                             {
                                 name: "Properties",
+                                action: () => {
+                                    
+                                }
                             }
                         ]
                     }
@@ -464,6 +523,10 @@
 
                 &--active {
                     background: rgba(0, 128, 252, 0.3);
+                }
+
+                [contenteditable=true] {
+                    background: white;
                 }
 
                 &__icon {

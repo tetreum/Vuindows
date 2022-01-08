@@ -1,6 +1,6 @@
 <template>
     <ul class="ContextMenu custom-menu" v-show="show">
-        <li v-for="option in options" data-action="first">
+        <li v-for="option, index in options" @click="clickOption(option)" :key="index">
             {{ option.name }}
         </li>
     </ul>
@@ -41,14 +41,12 @@
                     this.show = false;
                 }
             });
-
-            // If the menu element is clicked
-            $customMenu.querySelectorAll(".custom-menu li").forEach(el => {
-                el.addEventListener("click", () => {
-                    console.log(el.dataset.action);
-                    this.show = false;
-                });
-            });
+        },
+        methods: {
+            clickOption(option) {
+                this.show = false;
+                option.action();
+            }
         }
     }
 </script>
