@@ -48,7 +48,7 @@
 
 <script>
     import { mapActions, mapGetters } from 'vuex';
-    import interact from 'interactjs'
+    import interact from 'interactjs';
 
     export default {
         data() {

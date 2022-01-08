@@ -2,7 +2,7 @@
     <div class="WindowsLoader">
         <div>
             <div class="WindowsLoader__logo">
-                <img src="images/Vuindows-blue.png" alt="" width="150">
+                <img src="images/logo.png">
             </div>
 
             <div class="WindowsLoader__loader">
@@ -37,7 +37,6 @@
         mounted() {
             setTimeout(() => {
                 this.$el.classList.add("fade-out");
-
             }, 1000);
         }
     }
@@ -50,7 +49,7 @@
         transition: visibility 0s 2s, opacity 2s linear;
     }
     .WindowsLoader {
-        z-index: 999;
+        z-index: 900;
         position: fixed;
         background:black;
         height: 100vh;

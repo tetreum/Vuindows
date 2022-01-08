@@ -1,5 +1,6 @@
 <template>
     <div class="App">
+        <login></login>
         <windows-loader></windows-loader>
 
         <desktop></desktop>
@@ -17,6 +18,7 @@
 </template>
 
 <script>
+    import Login from './components/Login.vue';
     import WindowsLoader from './components/WindowsLoader.vue';
     import Taskbar from './components/Taskbar.vue';
     import Desktop from './components/Desktop.vue';
@@ -32,6 +34,7 @@
             }
         },
         components: {
+            Login,
             WindowsLoader,
             Taskbar,
             Desktop,

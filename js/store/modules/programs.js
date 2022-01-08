@@ -174,14 +174,22 @@ const state = {
             icon: 'images/programs/notepad.png',
             component: 'Notepad'
         },
+        {
+            name: 'FileMover',
+            icon: 'images/filetypes//file.png',
+            component: 'FileMover'
+        },
     ],
     runningPrograms: [],
     nextId: 1,
-    highestZindex: 100
+    highestZindex: 100,
+    user: null
 };
 
 // getters
 const getters = {
+    isLogged: state => state.user != null,
+    getUser: state => state.user,
     programs: state => state.programs,
     runningPrograms: state => state.runningPrograms,
     getRunningProgram: state => id => state.runningPrograms.find(program => program.id === id),
@@ -255,6 +263,9 @@ const actions = {
 
         commit('unminimize', program);
     },
+    setUser({ commit }, user) {
+        commit('setUser', user);
+    },
 };
 
 // mutations
@@ -293,6 +304,9 @@ const mutations = {
         program.options.mode = program.options.previousMode || 'normal';
 
         updateProgram(state, program.id, program);
+    },
+    setUser(state, user) {
+        state.user = user;
     }
 };
 

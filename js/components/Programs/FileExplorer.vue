@@ -63,11 +63,16 @@
 
                     <div v-else
                          v-for="file in folderFiles"
-                         :key="`${currentFolderName}-${file.name}}`"
+                         :key="`${currentFolderName}-${file.name}`"
                          class="FileExplorer__content__file"
                          :class="{'FileExplorer__content__file--active': focusedFile === file.name}"
+                         @dragstart="startDragging(file.name)"
+                         @dragover="allowDrop"
+                         @drop="moveFile"
                          @click="focusFile(file.name)"
-                         @dblclick="openFile(file)">
+                         @dblclick="openFile(file)"
+                         :data-name="`${file.name}`"
+                         draggable="true">
                         <div class="FileExplorer__content__file__icon">
                             <img v-if="file.type === 'image'" :src="`${getIcon(file)}`">
                             <img v-else :src="`${getIcon(file)}`">
@@ -86,6 +91,7 @@
 
     import _ from 'lodash';
     import programMixin from '../../mixins/program'
+    import Socket from '../../services/socket'
 
     export default {
         data() {
@@ -93,7 +99,9 @@
                 currentFolderName: null,
                 currentFolder: null,
                 breadcrumb: [],
-                focusedFile: null
+                focusedFile: null,
+                draggedFile: null,
+                directorySeparator: null
             }
         },
         props: {
@@ -103,27 +111,27 @@
         },
         mixins: [programMixin],
         mounted() {
-            if (this.files && this.files.length) {
-                this.openFolder(this.files[0].name);
-            }
+            document.querySelector('.Program.FileExplorer').addEventListener("refresh", () => {
+                this.refresh();
+            });
+
+            Socket.request("ls", {
+                folder: 'C:\\'
+            }).then(files => {
+                this.currentFolder = {
+                    name: "/",
+                    childs: files
+                };
+            });
         },
         computed: {
             ...mapGetters([
                 'getFileType',
                 'getIcon',
+                'files'
             ]),
-            ...mapGetters({
-                'defaultFiles': 'files',
-            }),
             isEmpty() {
                 return ! this.folderFiles || this.folderFiles.length === 0
-            },
-            files() {
-                if (this.filesTree) {
-                    return this.filesTree;
-                }
-
-                return this.defaultFiles;
             },
             folderFiles() {
                 if (this.currentFolder) {
@@ -149,12 +157,13 @@
                 return folders;
             },
             canGoBack() {
-                return this.breadcrumb.length > 1;
+                return this.currentFolder && this.currentFolder.name.length > 1;
             }
         },
         methods: {
             ...mapActions([
                 'runProgram',
+                'setFiles',
             ]),
             focusFile(focusedFile) {
                 this.focusedFile = focusedFile;
@@ -168,10 +177,34 @@
                     }
                 })
             },
-            goBack() {
-                const previousThanLastIndex = this.breadcrumb.length - 2;
+            getDirectorySeparator () {
+                if (this.directorySeparator != null) {
+                    return this.directorySeparator;
+                }
+                const user = JSON.parse(localStorage.getItem("user"));
 
-                this.goToFolderFromBreadcrumb(previousThanLastIndex);
+                switch (user.platform) {
+                    case "win32":
+                        this.directorySeparator = "\\";
+                        break;
+                    default:
+                        this.directorySeparator = "/";
+                        break;
+                }
+                return this.directorySeparator;
+            },
+            goBack() {
+                const directorySeparator = this.getDirectorySeparator();
+                const parts = this.currentFolder.name.split(directorySeparator);
+                parts.pop();
+                let previousPath = parts.join(directorySeparator);
+
+                // fix windows root letter, as C: != C:\\ to node.
+                if (parts.length == 1 && !(previousPath.includes(directorySeparator))) {
+                    previousPath += directorySeparator;
+                }
+
+                this.openFolder(previousPath);
             },
             openFile(file) {
                 if (file.action) {
@@ -223,7 +256,7 @@
                         });
                         break;
                     case 'folder':
-                        this.openFolder(file);
+                        this.openFolder(file.path);
                         break;
                     default:
                         break;
@@ -260,11 +293,57 @@
 
                 return currentFolder;
             },
-            openFolder(file) {
-                this.currentFolderName = file.name ? file.name : file;
+            openFolder(filePath) {
+                Socket.request("ls", {
+                    folder: filePath
+                }).then(files => {
+                    this.currentFolder = {
+                        name: filePath,
+                        childs: files
+                    };
+                });
+            },
+            moveFile(e) {
+                const targetFolder = e.target.closest('[draggable="true"]').dataset.name;
+                let originFile = null;
+                let destinationFolder = null;
 
-                this.currentFolder = this.getCurrentFolder();
+                this.folderFiles.forEach(file => {
+                    if (file.name == this.draggedFile) {
+                        originFile = file;
+                    } else if (file.name == targetFolder) {
+                        destinationFolder = file;
+                    }
+                });
+
+                // dragging a file over another file is not supported :S
+                if (!destinationFolder || !destinationFolder.directory) {
+                    return;
+                } 
+
+                // it should display a confirmation popup before moving an entire folder
+                if (originFile.directory) {
+                    return;
+                }
+
+                this.runProgram({
+                    name: 'FileMover',
+                    props: {
+                        'origin': originFile,
+                        'destination': destinationFolder,
+                    }
+                });
+            },
+            allowDrop(e) {
+                e.preventDefault();
+            },
+            startDragging(file) {
+                this.draggedFile = file;
+            },
+            refresh () {
+                this.openFolder(this.currentFolder.name);
             }
+            
         }
     }
 </script>

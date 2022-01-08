@@ -37,7 +37,7 @@
 </template>
 
 <script>
-    import { mapGetters, mapActions } from 'vuex';
+    import { mapGetters, mapActions, mapState } from 'vuex';
     import { inArray } from '../utils';
 
     import Shortcut from './Shortcut.vue';
@@ -48,9 +48,11 @@
     import Notepad from './Programs/Notepad.vue';
     import PhotoViewer from './Programs/PhotoViewer.vue';
     import FileExplorer from './Programs/FileExplorer.vue';
+    import FileMover from './Programs/FileMover.vue';
     import Terminal from './Programs/Terminal.vue';
     import Settings from './Programs/Settings.vue';
     import interact from 'interactjs'
+    import Socket from '../services/socket'
 
     export default {
         components: {
@@ -63,6 +65,7 @@
             FileExplorer,
             Settings,
             Terminal,
+            FileMover,
         },
         mounted() {
             // interactjs does not always detect mouse up when snap modifier is present :S
@@ -142,7 +145,6 @@
             }
         },
         methods: {
-
             ...mapActions([
                'runProgram',
                'terminateProgram',
