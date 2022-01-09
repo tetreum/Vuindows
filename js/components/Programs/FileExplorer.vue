@@ -356,6 +356,14 @@
                 return this.openFolder(this.currentFolder.name);
             },
             rename (file) {
+                if (!file) {
+                    if (this.focusedFile) {
+                        file = this.focusedFile;
+                    } else {
+                        console.error("rename method called without required argument");
+                        return;
+                    }   
+                }
                 this.focusFile(file);
                 this.renameFocusedFile = true;
 
@@ -414,7 +422,7 @@
                     if(this.focusedFile) {
                         file = this.focusedFile;
                     } else {
-                        console.log("delete method called without required argument");
+                        console.error("delete method called without required argument");
                         return;
                     }
                 }
