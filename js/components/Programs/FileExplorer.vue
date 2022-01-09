@@ -47,10 +47,10 @@
                 <div class="FileExplorer__sidebar">
                     <ul v-for="mainFolder, key in mainFolders"
                         class="FileExplorer__sidebar__folder"
-                        :class="{'FileExplorer__sidebar__folder--active': currentMainFolder === mainFolder}"
+                        :class="{'FileExplorer__sidebar__folder--active': mainFolder.name === currentFolder.name}"
                         :key="key"
-                        @click="openFolder(mainFolder)">
-                        <li>{{ mainFolder }}</li>
+                        @click="openFolder(mainFolder.path)">
+                        <li><img :src="`${getIcon(mainFolder)}`"> {{ mainFolder.name }}</li>
                     </ul>
                 </div>
 
@@ -108,7 +108,8 @@
                 focusedFile: null,
                 draggedFile: null,
                 renameFocusedFile: false,
-                directorySeparator: null
+                directorySeparator: null,
+                mainFolders: []
             }
         },
         props: {
@@ -137,6 +138,7 @@
                     name: "/",
                     childs: files
                 };
+                this.mainFolders = files;
             });
         },
         computed: {
@@ -165,7 +167,6 @@
                         path: filledParts.join(separator)
                     });
                 });
-                console.log(folders);
 
                 return folders;
             },
@@ -185,15 +186,6 @@
                 }
 
                 return this.breadcrumb[0];
-            },
-            mainFolders() {
-                const folders = [];
-
-                _.each(this.files, folder => {
-                    folders.push(folder.name);
-                });
-
-                return folders;
             },
             canGoBack() {
                 return this.currentFolder && this.currentFolder.name.length > 1;
@@ -618,6 +610,10 @@
                 line-height: 2em;
                 height: 2em;
                 cursor: pointer;
+            }
+
+            img {
+                width: 20px;
             }
 
             &__folder {
