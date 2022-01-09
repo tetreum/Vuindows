@@ -32,9 +32,9 @@
                 <div class="FileExplorer__breadcrumb">
                     <!--Quick Access-->
 
-                    <span v-for="item, key in breadcrumb"
-                          @click="goToFolderFromBreadcrumb(key)">
-                        {{ item }}
+                    <span v-for="folder in breadcrumb" :key="`breadcrumb-${folder.path}`"
+                          @click="openFolder(folder.path)">
+                        {{ folder.name }}
                     </span>
                 </div>
 
@@ -105,7 +105,6 @@
             return {
                 currentFolderName: null,
                 currentFolder: null,
-                breadcrumb: [],
                 focusedFile: null,
                 draggedFile: null,
                 renameFocusedFile: false,
@@ -146,6 +145,30 @@
                 'getIcon',
                 'files'
             ]),
+            breadcrumb() {
+                if (!this.currentFolder) {
+                    return [];
+                }
+                const separator = this.getDirectorySeparator();
+                const parts = this.currentFolder.name.split(separator);
+                let folders = [];
+                let filledParts = [];
+
+                parts.forEach(part => {
+                    if (part.length == 0) {
+                        return;
+                    }
+                    filledParts.push(part);
+
+                    folders.push({
+                        name: part,
+                        path: filledParts.join(separator)
+                    });
+                });
+                console.log(folders);
+
+                return folders;
+            },
             isEmpty() {
                 return ! this.folderFiles || this.folderFiles.length === 0
             },
@@ -179,19 +202,9 @@
         methods: {
             ...mapActions([
                 'runProgram',
-                'setFiles',
             ]),
             focusFile(focusedFile) {
                 this.focusedFile = focusedFile;
-            },
-            goToFolderFromBreadcrumb(key) {
-                _.each(this.breadcrumb, (name, index) => {
-                    this.openFolder(name);
-
-                    if (index === key) {
-                        return false;
-                    }
-                })
             },
             getDirectorySeparator () {
                 if (this.directorySeparator != null) {
@@ -283,37 +296,6 @@
                     default:
                         break;
                 }
-            },
-            getCurrentFolder() {
-                let currentFolder;
-
-                // Maybe SubFolder
-                if (this.currentFolder && this.currentFolder.childs) {
-                    currentFolder = this.currentFolder.childs.find(folder => {
-                        return folder.name === this.currentFolderName;
-                    });
-
-                    if (currentFolder) {
-                        this.breadcrumb.push(currentFolder.name);
-                    }
-                }
-
-                // Not a subFolder, try to find a toplevel
-                if (! currentFolder) {
-                    currentFolder = this.files.find(folder => {
-                        return folder.name === this.currentFolderName;
-                    });
-
-                    if (currentFolder) {
-                        this.breadcrumb = [currentFolder.name];
-                    }
-                }
-
-                if (! currentFolder) {
-                    return [];
-                }
-
-                return currentFolder;
             },
             openFolder(filePath) {
                 return new Promise((resolve, reject) => {
