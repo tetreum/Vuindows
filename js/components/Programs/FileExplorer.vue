@@ -38,16 +38,16 @@
                     </span>
                 </div>
 
-                <!--<div class="FileExplorer__nav__button">-->
-                    <!--Search-->
-                <!--</div>-->
+                <div @click="toggleCurrentFolderFromFavorites" title="Add/remove current folder from favorites" class="FileExplorer__nav__button FileExplorer__nav__favorite-button">
+                    <i :class="{'ion-android-star-outline': !isCurrentFolderInFavorites, 'ion-android-star': isCurrentFolderInFavorites}"></i>
+                </div>
             </div>
 
             <div class="FileExplorer__main" @contextmenu="showLeftMenu()">
                 <div class="FileExplorer__sidebar">
-                    <ul v-for="mainFolder, key in mainFolders"
+                    <ul v-for="mainFolder, key in shortcuts"
                         class="FileExplorer__sidebar__folder"
-                        :class="{'FileExplorer__sidebar__folder--active': mainFolder.name === currentFolder.name}"
+                        :class="{'FileExplorer__sidebar__folder--active': currentFolder && mainFolder.name === currentFolder.name}"
                         :key="key"
                         @click="openFolder(mainFolder.path)">
                         <li><img :src="`${getIcon(mainFolder)}`"> {{ mainFolder.name }}</li>
@@ -109,7 +109,8 @@
                 draggedFile: null,
                 renameFocusedFile: false,
                 directorySeparator: null,
-                mainFolders: []
+                mainFolders: [],
+                favorites: []
             }
         },
         props: {
@@ -140,6 +141,7 @@
                 };
                 this.mainFolders = files;
             });
+            this.getFavorites();
         },
         computed: {
             ...mapGetters([
@@ -147,6 +149,40 @@
                 'getIcon',
                 'files'
             ]),
+            isCurrentFolderInFavorites() {
+                let isIn = false;
+
+                if (!this.currentFolder) {
+                    return false;
+                }
+
+                this.favorites.forEach(entry => {
+                    if (entry.path == this.currentFolder.name) {
+                        isIn = true;
+                    }
+                });
+
+                return isIn;
+            },
+            shortcuts() {
+                const list = [];
+
+                this.mainFolders.forEach(entry => {
+                    list.push({
+                        name: entry.name,
+                        path: entry.path,
+                        directory: true,
+                    });
+                });
+                this.favorites.forEach(entry => {
+                    list.push({
+                        name: entry.name,
+                        path: entry.path,
+                        directory: true,
+                    });
+                });
+                return list;
+            },
             breadcrumb() {
                 if (!this.currentFolder) {
                     return [];
@@ -213,6 +249,9 @@
                         break;
                 }
                 return this.directorySeparator;
+            },
+            splitPath (path) {
+                return path.split(this.getDirectorySeparator());
             },
             goBack() {
                 this.renameFocusedFile = false;
@@ -424,6 +463,22 @@
                     this.refresh();
                 });
             },
+            getFavorites () {
+                Socket.request("file_explorer/favorites/list").then(result => {
+                    this.favorites = result;
+                });
+            },
+            toggleCurrentFolderFromFavorites () {
+                const parts = this.splitPath(this.currentFolder.name);
+                const name = parts[parts.length - 1];
+
+                Socket.request("file_explorer/favorites/toggle", {
+                    name: name,
+                    path: this.currentFolder.name,
+                }).then(result => {
+                    this.getFavorites();
+                });
+            },
             showLeftMenu (file) {
                 let options = [];
 
@@ -535,6 +590,12 @@
                 &:hover {
                     background: #CCCCCC;
                 }
+            }
+
+            &__favorite-button {
+                right: 0;
+                position: absolute;
+                color: #e7e700;
             }
         }
 

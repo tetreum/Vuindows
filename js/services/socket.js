@@ -49,7 +49,7 @@ class Sockets {
         }
     }
 
-    request (action, params) {
+    request (action, params = {}) {
         return new Promise((resolve, reject) => {
             const uuid = this.generateUUID();
             this.requests[uuid] = {
