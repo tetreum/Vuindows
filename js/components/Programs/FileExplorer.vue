@@ -43,7 +43,7 @@
                 <!--</div>-->
             </div>
 
-            <div class="FileExplorer__main">
+            <div class="FileExplorer__main" @contextmenu="showLeftMenu()">
                 <div class="FileExplorer__sidebar">
                     <ul v-for="mainFolder, key in mainFolders"
                         class="FileExplorer__sidebar__folder"
@@ -121,6 +121,14 @@
         mounted() {
             document.querySelector('.Program.FileExplorer').addEventListener("refresh", () => {
                 this.refresh();
+            });
+            document.addEventListener("keydown", (e) => {
+                if (this.renameFocusedFile) {
+                    return;
+                }
+                if (e.code == "Delete" && this.focusedFile) {
+                    this.delete(this.focusedFile);
+                }
             });
 
             Socket.request("ls", {
@@ -308,14 +316,19 @@
                 return currentFolder;
             },
             openFolder(filePath) {
-                this.renameFocusedFile = false;
-                Socket.request("ls", {
-                    folder: filePath
-                }).then(files => {
-                    this.currentFolder = {
-                        name: filePath,
-                        childs: files
-                    };
+                return new Promise((resolve, reject) => {
+                    this.renameFocusedFile = false;
+
+                    Socket.request("ls", {
+                        folder: filePath
+                    }).then(files => {
+                        this.focusedFile = null;
+                        this.currentFolder = {
+                            name: filePath,
+                            childs: files
+                        };
+                        resolve();
+                    });
                 });
             },
             moveFile(e) {
@@ -358,25 +371,28 @@
                 this.draggedFile = file;
             },
             refresh () {
-                this.openFolder(this.currentFolder.name);
+                return this.openFolder(this.currentFolder.name);
             },
             rename (file) {
                 this.focusFile(file);
                 this.renameFocusedFile = true;
 
-                const $name = document.getElementById('file-name-' + file.ino);
+                const $name = this.getFileLabel(file);
 
                 $name.focus();
                 setTimeout(() => {
                     $name.focus();
                 }, 200);
             },
+            getFileLabel (file) {
+                return document.getElementById('file-name-' + file.ino);
+            },
             stopRenaming(file) {
                 if (!this.renameFocusedFile) {
                     return;
                 }
                 this.renameFocusedFile = false;
-                const $name = document.getElementById('file-name-' + file.ino);
+                const $name = this.getFileLabel(file);
                 const newName = $name.innerText;
 
                 if (newName == file.name) { // no changes were made
@@ -399,29 +415,72 @@
                     this.stopRenaming(this.focusedFile);
                 }
             },
+            newFolder() {
+                const pathSeparator = this.getDirectorySeparator();
+                const folderName = "new-folder-" + (new Date()).getTime();
+
+                Socket.request("mkdir", {
+                    path: [this.currentFolder.name, folderName].join(pathSeparator),
+                }).then(file => {
+                    this.refresh().then(() => {
+                        this.rename(file);
+                    });
+                });
+            },
+            delete(file) {
+                if (typeof file === 'undefined') {
+                    if(this.focusedFile) {
+                        file = this.focusedFile;
+                    } else {
+                        console.log("delete method called without required argument");
+                        return;
+                    }
+                }
+                Socket.request("rm", {
+                    path: file.path,
+                }).then(result => {
+                    this.refresh();
+                });
+            },
             showLeftMenu (file) {
+                let options = [];
+
+                if (this.focusedFile) {
+                    options.push({
+                        name: "Rename",
+                        action: () => {
+                            this.rename(file);
+                        }
+                    });
+                    options.push({
+                        name: "Delete",
+                        action: () => {
+                            this.delete(file);
+                        }
+                    });
+                    options.push({
+                        name: "Properties",
+                        action: () => {
+                        }
+                    });
+                } else {
+                    options.push({
+                        name: "New folder",
+                        action: () => {
+                            this.newFolder();
+                        }
+                    });
+                    options.push({
+                        name: "Refresh",
+                        action: () => {
+                            this.refresh();
+                        }
+                    });
+                }
+
                 document.querySelector('.ContextMenu').dispatchEvent(new CustomEvent("show", {
                     detail: {
-                        options: [
-                            {
-                                name: "Rename",
-                                action: () => {
-                                    this.rename(file);
-                                }
-                            },
-                            {
-                                name: "Delete",
-                                action: () => {
-                                    
-                                }
-                            },
-                            {
-                                name: "Properties",
-                                action: () => {
-                                    
-                                }
-                            }
-                        ]
+                        options: options
                     }
                 }));
             }
