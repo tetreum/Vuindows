@@ -8,7 +8,7 @@ class Sockets {
 
     connect () {
         return new Promise((resolve, reject) => {
-            this.client = new W3CWebSocket('ws://' + location.host + '/', localStorage.getItem("token"));
+            this.client = new W3CWebSocket('ws://' + (typeof window.webpackHotUpdatevuindows === "undefined" ? location.host : location.host.replace("8080", "8081") ) + '/', localStorage.getItem("token"));
 
             this.client.onopen = () => {
                 console.log('WebSocket Client Connected');

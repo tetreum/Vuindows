@@ -1,7 +1,7 @@
 
 export const METHOD_GET = "get";
 export const METHOD_POST = "post";
-export const BASE_URL = location.origin.replace("8080", "8081") + '/api/';
+export const BASE_URL = typeof window.webpackHotUpdatevuindows === "undefined" ? location.origin  + '/api/' : location.origin.replace("8080", "8081") + '/api/';
 
 export const request = (route, params, method) => {
 
