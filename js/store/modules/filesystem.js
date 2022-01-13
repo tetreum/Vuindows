@@ -14,13 +14,43 @@ const getters = {
         const type = getters.getFileType(file);
 
         switch (type) {
-            case 'audio':
+            case 'zip':
+            case 'rar':
+            case '7z':
+                return 'images/filetypes/zip.png';
+            case 'css':
+            case 'scss':
+                return 'images/filetypes/css.png';
+            case 'js':
+                return 'images/filetypes/js.png';
+            case 'html':
+            case 'htm':
+                return 'images/filetypes/html.png';
+            case 'mp3':
+            case 'ogg':
                 return 'images/filetypes/audio.png';
-            case 'text':
+            case 'txt':
                 return 'images/filetypes/file.png';
-            case 'image':
-                return file.src;
-            case 'video':
+            case 'jpg':
+            case 'png':
+            case 'jpeg':
+            case 'webp':
+            case 'gif':
+            case 'ico':
+                return 'images/filetypes/image.png';
+            case 'mp4':
+            case 'webm':
+            case 'mkv':
+            case 'flv':
+            case 'avi':
+            case 'wmv':
+            case 'mov':
+            case 'mpg':
+            case 'm4v':
+            case '3gp':
+            case 'ts':
+            case 'mts':
+            case 'vob':
                 return 'images/filetypes/video.png';
             case 'folder':
                 return file.name.endsWith(":") ? 'images/filetypes/drive.png' : 'images/filetypes/folder.png';

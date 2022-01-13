@@ -39,6 +39,11 @@ Credits
 - [Jahzzar song from Siesta](http://freemusicarchive.org/music/Jahzzar/Travellers_Guide/Siesta)
 - [a_sky_full_of_stars.mp4 from splashbase](http://www.splashbase.co/)
 - Some code and initial idea: [Tanner Villarete](https://github.com/tvillarete/Win10-Replica)
+- Icons: 
+- http://www.pelfusion.com
+- https://iconarchive.com/show/mnemo-icons-by-hechiceroo/js-icon.html
+- https://iconarchive.com/show/variations-2-icons-by-guillendesign/Zip-icon.html
+- https://iconarchive.com/show/file-type-icons-by-treetog/css-icon.html
 
 
 Disclaimer

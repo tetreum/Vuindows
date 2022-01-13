@@ -340,6 +340,7 @@
 
         &--autoHeight {
             height: auto;
+            max-height: calc(100vh - 2.8em);
 
             .Program__content,
             .popupShell__content {
