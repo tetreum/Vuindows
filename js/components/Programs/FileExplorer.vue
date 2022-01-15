@@ -389,7 +389,7 @@
 
                 // it should display a confirmation popup before moving an entire folder
                 if (originFile.directory) {
-                    return;
+                    //return;
                 }
 
                 this.runProgram({
