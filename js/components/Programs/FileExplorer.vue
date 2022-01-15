@@ -99,6 +99,7 @@
     import _ from 'lodash';
     import programMixin from '../../mixins/program'
     import Socket from '../../services/socket'
+    import * as Api from '../../services/api'
 
     export default {
         data() {
@@ -272,6 +273,9 @@
 
                 this.openFolder(previousPath);
             },
+            getFileContent (path) {
+                return Api.request("fs/get", {path}, Api.METHOD_GET, false);
+            },
             openFile(file) {
                 if (file.action) {
                     return file.action(file);
@@ -290,23 +294,36 @@
                         });
 
                         break;
-                    case 'text':
-                        this.runProgram({
-                            name: 'Notepad',
-                            props: {
-                                'content': file.text,
-                                'name': file.name,
-                            }
+                    case 'htm':
+                    case 'html':
+                    case 'txt':
+                        this.getFileContent(file.path).then(content => {
+                            content.text().then(text => {
+                                this.runProgram({
+                                    name: 'Notepad',
+                                    props: {
+                                        'content': text,
+                                        'name': file.name,
+                                    }
+                                });
+                            });
                         });
 
                         break;
                     case 'image':
-                        this.runProgram({
-                            name: 'PhotoViewer',
-                            props: {
-                                'source': file.src,
-                                'name': file.name,
-                            }
+                    case 'png':
+                        this.getFileContent(file.path).then(content => {
+                            content.blob().then(blob => {
+                                Api.blobToB64(blob).then(b64 => {
+                                    this.runProgram({
+                                        name: 'PhotoViewer',
+                                        props: {
+                                            'source': b64,
+                                            'name': file.name,
+                                        }
+                                    });
+                                });
+                            });
                         });
                         break;
                     case 'video':

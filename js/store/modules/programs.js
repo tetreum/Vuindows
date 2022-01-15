@@ -166,7 +166,7 @@ const state = {
         },
         {
             name: 'PhotoViewer',
-            icon: 'images/programs/file.png',
+            icon: 'images/filetypes/file.png',
             component: 'PhotoViewer'
         },
         {
@@ -176,7 +176,7 @@ const state = {
         },
         {
             name: 'FileMover',
-            icon: 'images/filetypes//file.png',
+            icon: 'images/filetypes/file.png',
             component: 'FileMover'
         },
     ],
