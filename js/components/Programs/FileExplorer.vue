@@ -167,13 +167,16 @@
             },
             shortcuts() {
                 const list = [];
+                const MAX_MAIN_FOLDERS = 10; // linux does usually have like 99999 folders at /
 
                 this.mainFolders.forEach(entry => {
-                    list.push({
-                        name: entry.name,
-                        path: entry.path,
-                        directory: true,
-                    });
+                    if (list.length < MAX_MAIN_FOLDERS) {
+                        list.push({
+                            name: entry.name,
+                            path: entry.path,
+                            directory: true,
+                        });
+                    }
                 });
                 this.favorites.forEach(entry => {
                     list.push({
@@ -192,6 +195,10 @@
                 const parts = this.currentFolder.name.split(separator);
                 let folders = [];
                 let filledParts = [];
+
+                if (separator === "/") {
+                    filledParts.push("/");
+                }
 
                 parts.forEach(part => {
                     if (part.length == 0) {
