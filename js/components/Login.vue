@@ -170,6 +170,9 @@
 .mt-3 {
     margin-top: 1rem!important;
 }
+.ms-5 {
+    margin-left: 3rem!important;
+}
 .d-none {
     display: none;
 }

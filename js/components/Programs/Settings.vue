@@ -178,6 +178,17 @@
 
                 <div class="Settings__section" v-if="section === 'accounts'">
                     <h1>Accounts</h1>
+                    <div id="settings-accounts" class="settingsPane-4-Main ms-5">
+                        <label>
+                            Username:
+                            <input name="username" :value="currentUsername" type="text" class="form-control">
+                        </label>
+                        <label class="mt-2">
+                            Password:
+                            <input name="password" type="password" class="form-control">
+                        </label>
+                        <button class="btn btn-primary mt-2" @click="changeUserAndPassword()">Save</button>
+                    </div>
                 </div>
 
                 <div class="Settings__section" v-if="section === 'time'">
@@ -204,6 +215,7 @@
     import { mapMutations, mapGetters } from 'vuex';
 
     import programMixin from '../../mixins/program'
+    import Socket from '../../services/socket';
 
     export default {
         data() {
@@ -237,6 +249,9 @@
                 'background',
                 'isWiFiConnected'
             ]),
+            currentUsername () {
+                return JSON.parse(localStorage.getItem('user')).username;
+            }
         },
         methods: {
             ...mapMutations([
@@ -254,6 +269,23 @@
                 });
 
                 this.changePreferredColor(color);
+            },
+            changeUserAndPassword () {
+                const username = document.querySelector('#settings-accounts [name="username"]').value;
+                const password = document.querySelector('#settings-accounts [name="password"]').value;
+
+                if (username.length < 4 || password.length < 4) {
+                    return;
+                }
+
+                Socket.request('account/change', {
+                    username,
+                    password,
+                }).then(response => {
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("token");
+                    location.reload();
+                });
             }
         }
     }

@@ -52,7 +52,6 @@
     import Terminal from './Programs/Terminal.vue';
     import Settings from './Programs/Settings.vue';
     import interact from 'interactjs'
-    import Socket from '../services/socket'
 
     export default {
         components: {
