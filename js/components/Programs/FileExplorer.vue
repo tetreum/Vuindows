@@ -443,8 +443,8 @@
                 if (newName == file.name) { // no changes were made
                     return;
                 }
-                
-                Socket.request("mv", {
+
+                Socket.request("rename", {
                     origin: file.path,
                     destination: file.path.replace(file.name, newName)
                 }).then(result => {
